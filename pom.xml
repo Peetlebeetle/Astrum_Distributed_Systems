@@ -1,0 +1,16 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>lifeco-rest</groupId>
+    <artifactId>task5</artifactId>
+    <version>0.0.1</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>core</module>
+        <module>hms</module>
+        <module>hotel</module>
+        <module>hotel2</module>
+        <module>client-new</module>
+        <module>admin</module>
+    </modules>
+</project>

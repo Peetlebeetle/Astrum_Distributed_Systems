@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Checkout</title>
+        <script>
+            function confirmBooking() {
+                let booking_ref = parseInt(document.getElementById('booking_ref').value);
+                console.log(booking_ref);
+                let name = document.getElementById('name').value;
+                let email = document.getElementById('email').value;
+                let hotel = document.getElementById('hotel').value;
+
+                if(booking_ref && name && email) {
+                    fetch('http://localhost:8083/bookings', { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            booking_ref: booking_ref,
+                            name: name,
+                            email: email,
+                            hotel: hotel
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        let bookingInfo;
+                        try {
+                            bookingInfo = JSON.parse(data); // Try to parse the data as JSON
+                        } catch(e) {
+                            // If an error is thrown in the try block, the data is not valid JSON (or not provided), and we can set it to null
+                            bookingInfo = null;
+                        }
+                        if(bookingInfo === null) {
+                            document.getElementById('bookingInfo').textContent = 'Booking not found.';
+                        } else {
+                            document.getElementById('bookingInfo').textContent = `Booking Info: ${JSON.stringify(bookingInfo)}`;
+
+                            let checkoutButton = document.createElement('button');
+                            checkoutButton.textContent = 'Confirm Checkout';
+                            checkoutButton.onclick = function() {
+                                checkout(bookingInfo);
+                            };
+
+                            document.getElementById('bookingInfo').appendChild(checkoutButton);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                } else {
+                    alert('Please fill out all fields before confirming booking.');
+                }
+            }
+
+            function checkout(bookingInfo) {
+                fetch('http://localhost:8083/checkout', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        booking_ref: parseInt(bookingInfo.booking_ref),
+                        name: bookingInfo.name,
+                        email: bookingInfo.email,
+                        hotel: bookingInfo.hotel
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('checkoutConfirmation').textContent = `Checkout Confirmation: ${data.message}`;
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.4.0/nouislider.min.css">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-image: url(hotel_blur.png);
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-attachment: fixed; /* Keep the background image static */
+                margin: 0;
+                padding: 0;
+            }
+    
+            .navbar {
+                background-color: #68c4e2; /* Use a lighter blue color for the navbar background */
+                padding: 1%;
+                color: #fff;
+                margin: 0; /* Remove default margin */
+            }
+    
+            .navbar-title {
+                font-size: 20px;
+                font-weight: bold;
+                text-align: left;
+                padding: 20px; /* Reduce the padding for the navbar text */
+                margin: 0; /* Remove default margin */
+            }
+    
+            /* Rest of the code... */
+            form {
+                max-width: 400px;
+                margin: 2.5% 0 0 2.5%;
+                background-color: white;
+                padding: 20px;
+            }
+    
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+    
+            select,
+            input[type="checkbox"],
+            input[type="date"],
+            input[type="number"],
+            input[type="submit"] {
+                margin-bottom: 10px;
+            }
+    
+            input[type="submit"] {
+                padding: 10px 20px;
+                background-color: #68c4e2;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+            }
+    
+            input[type="submit"]:hover {
+                background-color: #17a9da;
+            }
+    
+            input[type="button"] {
+                padding: 10px 20px;
+                background-color: #68c4e2;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+            }
+    
+            input[type="button"]:hover {
+                background-color: #17a9da;
+            }
+    
+            button {
+                padding: 10px 20px;
+                background-color: #68c4e2;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+            }
+    
+            button:hover {
+                background-color: #17a9da;
+            }
+    
+            .carousel-container {
+                position: absolute;
+                top: 70%;
+                left: 70%;
+                transform: translate(-50%, -50%);
+                height: 60%;
+                width: 60%;
+                overflow: hidden;
+            }
+    
+            .carousel-item {
+                position: absolute;
+                top: 0;
+                left: 10%; /* Adjust the left position as per your preference */
+                display: none;
+                padding: 10px;
+                color: black;
+                font-size: 24px;
+                text-align: center;
+                width: 80%; /* Adjust the width as per your preference */
+                height: 100%;
+                animation-duration: 2s;
+                animation-fill-mode: forwards;
+            }
+    
+            /* Animation keyframes for the carousel */
+            @keyframes fade-in {
+                0% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+    
+            @keyframes fade-out {
+                0% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <span class="navbar-title">[ADMIN] Astrum Distributed Systems (Hotel Management and Booking)</span>
+        </div>
+        <form>
+            <div>
+                <h2>Check-Out</h2><hr><br><br>
+                <label for="booking_ref">Booking ref:</label>
+                <input type="text" id="booking_ref"><br><br>
+                <label for="name">Name:</label>
+                <input type="text" id="name"><br><br>
+                <label for="email">Email:</label>
+                <input type="text" id="email"><br><br><br>
+                <label for="hotel">Hotel:</label>
+                <select id="hotel">
+                    <option value="Hotel1">Hotel1</option>
+                    <option value="Hotel2">Hotel2</option>
+                </select><br><br>
+
+                <button onclick="event.preventDefault(); confirmBooking()">Confirm Check-Out</button>
+            </div>
+            <div id="bookingInfo"></div>
+            <div id="checkoutConfirmation"></div>
+        </form>
+    </body>
+</html>
